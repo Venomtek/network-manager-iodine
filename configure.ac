@@ -38,10 +38,18 @@ dnl
 dnl GNOME support
 dnl
 AC_ARG_WITH(gnome, AS_HELP_STRING([--without-gnome], [Build NetworkManager-iodine without GNOME support, e.g. vpn service only]))
-AM_CONDITIONAL(WITH_GNOME, test x"$with_gnome" != xno)
-
-AC_ARG_WITH(authdlg, AS_HELP_STRING([--without-authdlg], [Build NetworkManager-iodine without authentication dialog]))
-AM_CONDITIONAL(WITH_AUTHDLG, test x"$with_authdlg" != xno)
+AC_ARG_WITH(gtk4, AS_HELP_STRING([--with-gtk4], [Build NetworkManager-iodine with libnma-gtk4 support]), [], [with_gtk4_specified=no])
+if test "$with_gnome" != no; then
+        with_gnome=yes
+fi
+if test "$with_gtk4_specified" == no; then
+        with_gtk4=no
+fi
+if test "$with_gtk4" != yes; then
+        with_gtk4=no
+fi
+AM_CONDITIONAL(WITH_GNOME, test "$with_gnome" != no)
+AM_CONDITIONAL(WITH_GTK4, test "$with_gtk4" != no)
 
 AC_ARG_ENABLE(absolute-paths, AS_HELP_STRING([--enable-absolute-paths], [Use absolute paths to in .name files. Useful for development. (default is no)]))
 
@@ -52,13 +60,26 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package])
 IT_PROG_INTLTOOL([0.35])
 AM_GLIB_GNU_GETTEXT
 
+PKG_CHECK_MODULES(GLIB, gmodule-2.0 glib-2.0 >= 2.34)
+GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_34"
+GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_34"
+
+if test x"$with_gnome" != xno || test x"$with_gtk4" != xno; then
+        PKG_CHECK_MODULES(LIBSECRET, libsecret-1 >= 0.18)
+fi
+
 if test x"$with_gnome" != xno; then
-	with_gnome=yes
         PKG_CHECK_MODULES(GTK, gtk+-3.0 >= 3.4)
         GTK_CFLAGS="$GTK_CFLAGS -DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_3_4"
-
+        GTK_CFLAGS="$GTK_CFLAGS -DGDK_VERSION_MAX_ALLOWED=GDK_VERSION_3_4"
         PKG_CHECK_MODULES(LIBNMA, libnma >= 1.7.0)
-        PKG_CHECK_MODULES(LIBSECRET, libsecret-1 >= 0.18)
+fi
+
+if test x"$with_gtk4" != xno; then
+        PKG_CHECK_MODULES(GTK4, gtk4 >= 4.0)
+        GTK4_CFLAGS="$GTK4_CFLAGS -DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_0"
+        GTK4_CFLAGS="$GTK4_CFLAGS -DGDK_VERSION_MAX_ALLOWED=GDK_VERSION_4_0"
+        PKG_CHECK_MODULES(LIBNMA_GTK4, libnma-gtk4 >= 1.8.33)
 fi
 
 PKG_CHECK_MODULES(LIBNM, libnm >= 1.1.0)
