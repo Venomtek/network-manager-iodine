@@ -49,6 +49,13 @@
 #define PW_TYPE_ASK    1
 #define PW_TYPE_UNUSED 2
 
+/* GTK4 compat */
+#if !GTK_CHECK_VERSION(4,0,0)
+#define gtk_editable_set_text(editable,text)            gtk_entry_set_text(GTK_ENTRY(editable), (text))
+#define gtk_editable_get_text(editable)                 gtk_entry_get_text(GTK_ENTRY(editable))
+#endif
+
+
 /************** plugin class **************/
 
 enum {
@@ -239,7 +246,7 @@ check_validity (IodineEditor *self, GError **error)
 	const char *str;
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "topdomain_entry"));
-	str = gtk_entry_get_text (GTK_ENTRY (widget));
+	str = gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (!str || !strlen (str)) {
 		g_set_error (error,
 		             IODINE_EDITOR_PLUGIN_ERROR,
@@ -279,7 +286,7 @@ setup_password_widget (IodineEditor *self,
 
 	if (s_vpn) {
 		value = nm_setting_vpn_get_secret (s_vpn, secret_name);
-		gtk_entry_set_text (GTK_ENTRY (widget), value ? value : "");
+		gtk_editable_set_text (GTK_EDITABLE (widget), value ? value : "");
 		nm_setting_get_secret_flags (NM_SETTING (s_vpn),
 		                             secret_name,
 		                             &secret_flags,
@@ -325,7 +332,7 @@ pw_type_combo_changed_cb (GtkWidget *combo, gpointer user_data)
 	switch (gtk_combo_box_get_active (GTK_COMBO_BOX (combo))) {
 	case PW_TYPE_ASK:
 	case PW_TYPE_UNUSED:
-		gtk_entry_set_text (GTK_ENTRY (entry), "");
+		gtk_editable_set_text (GTK_EDITABLE (entry), "");
 		gtk_widget_set_sensitive (entry, FALSE);
 		break;
 	default:
@@ -356,7 +363,7 @@ init_one_pw_combo (IodineEditor *self,
 	 */
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, entry_name));
 	g_assert (widget);
-	value = gtk_entry_get_text (GTK_ENTRY (widget));
+	value = gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (value && strlen (value))
 		default_idx = 0;
 
@@ -412,7 +419,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_TOPDOMAIN);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -425,7 +432,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_NAMESERVER);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -437,7 +444,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_FRAGSIZE);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -491,7 +498,7 @@ save_password_and_flags (NMSettingVpn *s_vpn,
 
 	switch (gtk_combo_box_get_active (GTK_COMBO_BOX (combo))) {
 	case PW_TYPE_SAVE:
-		password = gtk_entry_get_text (GTK_ENTRY (entry));
+		password = gtk_editable_get_text (GTK_EDITABLE (entry));
 		if (password && strlen (password))
 			nm_setting_vpn_add_secret (s_vpn, secret_key, password);
 		break;
@@ -529,19 +536,19 @@ update_connection (NMVpnEditor *iface,
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "topdomain_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_TOPDOMAIN, str);
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "nameserver_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_NAMESERVER, str);
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "fragsize_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_FRAGSIZE, str);
 
