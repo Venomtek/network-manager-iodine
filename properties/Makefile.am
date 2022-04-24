@@ -16,7 +16,8 @@ libnm_iodine_properties_la_SOURCES =                    \
         $(editor_sources)
 
 uidir = $(datadir)/gnome-vpn-properties/iodine
-ui_DATA = nm-iodine-dialog.ui
+ui_DATA = nm-iodine-dialog-gtk3.ui                      \
+          nm-iodine-dialog-gtk4.ui
 
 common_CFLAGS =                                         \
 	-I$(top_srcdir)/src				\
@@ -29,12 +30,14 @@ common_CFLAGS =                                         \
         -DVERSION=\"$(VERSION)\"
 
 libnm_vpn_plugin_iodine_la_CFLAGS =                     \
+        -DUIFILE=\"nm-iodine-dialog-gtk3.ui\"           \
         $(GTK_CFLAGS)                                   \
         $(LIBNM_CFLAGS)                                 \
         $(LIBNMA_CFLAGS)                                \
         $(common_CFLAGS)
 
 libnm_iodine_properties_la_CFLAGS =                     \
+        -DUIFILE=\"nm-iodine-dialog-gtk3.ui\"           \
         $(GTK_CFLAGS)                                   \
         $(LIBNM_CFLAGS)                                 \
         $(common_CFLAGS)
@@ -62,6 +65,7 @@ libnm_gtk4_vpn_plugin_iodine_editor_la_SOURCES =        \
         $(editor_sources)
 
 libnm_gtk4_vpn_plugin_iodine_editor_la_CFLAGS =         \
+        -DUIFILE=\"nm-iodine-dialog-gtk4.ui\"           \
         $(GTK4_CFLAGS)                                  \
         $(LIBNM_CFLAGS)                                 \
         $(common_CFLAGS)

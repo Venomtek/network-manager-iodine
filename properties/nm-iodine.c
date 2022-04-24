@@ -582,7 +582,7 @@ nm_vpn_editor_interface_new (NMConnection *connection, GError **error)
 	}
 
 	priv = iodine_editor_get_instance_private (IODINE_EDITOR (object));
-	ui_file = g_strdup_printf ("%s/%s", UIDIR, "nm-iodine-dialog.ui");
+	ui_file = g_strdup_printf ("%s/%s", UIDIR, UIFILE);
 	priv->builder = gtk_builder_new ();
 
 	gtk_builder_set_translation_domain (priv->builder, GETTEXT_PACKAGE);
