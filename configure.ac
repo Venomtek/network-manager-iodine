@@ -81,3 +81,10 @@ properties/Makefile
 po/Makefile.in
 ])
 AC_OUTPUT
+
+echo ""
+echo "Build configuration: "
+echo "  --with-gnome=$with_gnome"
+echo "  --with-gtk4=$with_gtk4"
+echo ""
+
