@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright © 2012 Guido Günther <agx@sigxcpu.org>
+ * Copyright © 2012,2022 Guido Günther <agx@sigxcpu.org>
  *
  * Based on network-manager-{openconnect,pptp}
  */
@@ -566,53 +566,38 @@ update_connection (NMVpnEditor *iface,
 static NMVpnEditor *
 nm_vpn_editor_interface_new (NMConnection *connection, GError **error)
 {
-	NMVpnEditor *object;
+	g_autoptr (NMVpnEditor) object = NULL;
+	g_autoptr (GError) err = NULL;
+	g_autofree char *resource = NULL;
 	IodineEditorPrivate *priv;
-	char *ui_file;
 
 	if (error)
 		g_return_val_if_fail (*error == NULL, NULL);
 
 	object = g_object_new (IODINE_TYPE_EDITOR, NULL);
-
-	if (!object) {
-		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not create iodine object");
-		return NULL;
-	}
-
 	priv = iodine_editor_get_instance_private (IODINE_EDITOR (object));
-	ui_file = g_strdup_printf ("%s/%s", UIDIR, UIFILE);
+	resource = g_strdup_printf ("/org/freedesktop/network-manager-iodine/%s", UIFILE);
 	priv->builder = gtk_builder_new ();
 
 	gtk_builder_set_translation_domain (priv->builder, GETTEXT_PACKAGE);
-	if (!gtk_builder_add_from_file (priv->builder, ui_file, error)) {
-		g_warning ("Couldn't load builder file: %s",
-		           error && *error ? (*error)->message : "(unknown)");
-		g_clear_error (error);
+	if (!gtk_builder_add_from_resource (priv->builder, resource, &err)) {
+		g_warning ("Couldn't load builder file: %s", err->message);
 		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not load required resources at %s", ui_file);
-		g_free (ui_file);
-		g_object_unref (object);
+		             "could not load required resource %s", resource);
 		return NULL;
 	}
-	g_free (ui_file);
 
 	priv->widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "iodine-vbox"));
 	if (!priv->widget) {
-		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not load UI widget");
-		g_object_unref (object);
+		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0, "could not load UI widget");
 		return NULL;
 	}
 	g_object_ref_sink (priv->widget);
 
-	if (!init_editor_plugin (IODINE_EDITOR (object), connection, error)) {
-		g_object_unref (object);
+	if (!init_editor_plugin (IODINE_EDITOR (object), connection, error))
 		return NULL;
-	}
 
-	return object;
+	return g_steal_pointer (&object);
 }
 
 static void

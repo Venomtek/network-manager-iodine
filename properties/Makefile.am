@@ -6,23 +6,28 @@ endif
 
 libnm_vpn_plugin_iodine_la_SOURCES =                    \
         nm-iodine.c                                     \
-        nm-iodine.h
+        nm-iodine.h                                     \
+        resources.c                                     \
+        resources.h
 
 editor_sources =                                        \
         nm-iodine.c                                     \
-        nm-iodine.h
+        nm-iodine.h                                     \
+        resources.c                                     \
+        resources.h
+
+resources.h: gresources.xml
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) $< --target=$@ --sourcedir=$(srcdir)/properties --generate-header --internal
+
+resources.c: gresources.xml $(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies gresources.xml)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) $< --target=$@ --generate-source --internal
 
 libnm_iodine_properties_la_SOURCES =                    \
         $(editor_sources)
 
-uidir = $(datadir)/gnome-vpn-properties/iodine
-ui_DATA = nm-iodine-dialog-gtk3.ui                      \
-          nm-iodine-dialog-gtk4.ui
-
 common_CFLAGS =                                         \
 	-I$(top_srcdir)/src				\
         -DICONDIR=\""$(datadir)/pixmaps"\"              \
-        -DUIDIR=\""$(uidir)"\"                          \
         -DG_DISABLE_DEPRECATED                          \
         -DGDK_DISABLE_DEPRECATED                        \
         -DGNOME_DISABLE_DEPRECATED                      \
@@ -79,4 +84,4 @@ libnm_gtk4_vpn_plugin_iodine_editor_la_LDFLAGS =        \
 CLEANFILES = *.bak *~
 
 EXTRA_DIST =                            \
-        $(ui_DATA)
+        gresource.xml
