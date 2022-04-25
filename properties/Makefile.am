@@ -81,7 +81,9 @@ libnm_gtk4_vpn_plugin_iodine_editor_la_LIBADD =         \
 libnm_gtk4_vpn_plugin_iodine_editor_la_LDFLAGS =        \
         -avoid-version
 
-CLEANFILES = *.bak *~
+CLEANFILES = *.bak *~ \
+        gresources.c                                    \
+        gresources.h
 
 EXTRA_DIST =                            \
         gresource.xml
