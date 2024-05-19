@@ -3,11 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src
 
 if WITH_GNOME
-SUBDIRS += properties po
-
-if WITH_AUTHDLG
-SUBDIRS += auth-dialog
-endif
+SUBDIRS += auth-dialog properties po
 endif
 
 dbusservicedir = $(datadir)/dbus-1/system.d
@@ -26,7 +22,8 @@ nm-iodine-service.name: $(srcdir)/nm-iodine-service.name.in
 	    -e 's|[@]PLUGINDIR[@]/|@NM_PLUGIN_DIR@|g' \
 	    $< >$@
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-more-warnings=yes
+DISTCHECK_CONFIGURE_FLAGS = --enable-more-warnings=yes \
+                            --with-gtk4
 
 EXTRA_DIST = nm-iodine-service.name.in \
              $(dbusservice_DATA)  \

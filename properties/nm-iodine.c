@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright © 2012 Guido Günther <agx@sigxcpu.org>
+ * Copyright © 2012,2022 Guido Günther <agx@sigxcpu.org>
  *
  * Based on network-manager-{openconnect,pptp}
  */
@@ -48,6 +48,13 @@
 #define PW_TYPE_SAVE   0
 #define PW_TYPE_ASK    1
 #define PW_TYPE_UNUSED 2
+
+/* GTK4 compat */
+#if !GTK_CHECK_VERSION(4,0,0)
+#define gtk_editable_set_text(editable,text)            gtk_entry_set_text(GTK_ENTRY(editable), (text))
+#define gtk_editable_get_text(editable)                 gtk_entry_get_text(GTK_ENTRY(editable))
+#endif
+
 
 /************** plugin class **************/
 
@@ -239,7 +246,7 @@ check_validity (IodineEditor *self, GError **error)
 	const char *str;
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "topdomain_entry"));
-	str = gtk_entry_get_text (GTK_ENTRY (widget));
+	str = gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (!str || !strlen (str)) {
 		g_set_error (error,
 		             IODINE_EDITOR_PLUGIN_ERROR,
@@ -279,7 +286,7 @@ setup_password_widget (IodineEditor *self,
 
 	if (s_vpn) {
 		value = nm_setting_vpn_get_secret (s_vpn, secret_name);
-		gtk_entry_set_text (GTK_ENTRY (widget), value ? value : "");
+		gtk_editable_set_text (GTK_EDITABLE (widget), value ? value : "");
 		nm_setting_get_secret_flags (NM_SETTING (s_vpn),
 		                             secret_name,
 		                             &secret_flags,
@@ -325,7 +332,7 @@ pw_type_combo_changed_cb (GtkWidget *combo, gpointer user_data)
 	switch (gtk_combo_box_get_active (GTK_COMBO_BOX (combo))) {
 	case PW_TYPE_ASK:
 	case PW_TYPE_UNUSED:
-		gtk_entry_set_text (GTK_ENTRY (entry), "");
+		gtk_editable_set_text (GTK_EDITABLE (entry), "");
 		gtk_widget_set_sensitive (entry, FALSE);
 		break;
 	default:
@@ -356,7 +363,7 @@ init_one_pw_combo (IodineEditor *self,
 	 */
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, entry_name));
 	g_assert (widget);
-	value = gtk_entry_get_text (GTK_ENTRY (widget));
+	value = gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (value && strlen (value))
 		default_idx = 0;
 
@@ -412,7 +419,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_TOPDOMAIN);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -425,7 +432,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_NAMESERVER);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -437,7 +444,7 @@ init_editor_plugin (IodineEditor *self,
 	if (s_vpn) {
 		value = nm_setting_vpn_get_data_item (s_vpn, NM_IODINE_KEY_FRAGSIZE);
 		if (value)
-			gtk_entry_set_text (GTK_ENTRY (widget), value);
+			gtk_editable_set_text (GTK_EDITABLE (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget),
 	                  "changed",
@@ -491,7 +498,7 @@ save_password_and_flags (NMSettingVpn *s_vpn,
 
 	switch (gtk_combo_box_get_active (GTK_COMBO_BOX (combo))) {
 	case PW_TYPE_SAVE:
-		password = gtk_entry_get_text (GTK_ENTRY (entry));
+		password = gtk_editable_get_text (GTK_EDITABLE (entry));
 		if (password && strlen (password))
 			nm_setting_vpn_add_secret (s_vpn, secret_key, password);
 		break;
@@ -529,19 +536,19 @@ update_connection (NMVpnEditor *iface,
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "topdomain_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_TOPDOMAIN, str);
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "nameserver_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_NAMESERVER, str);
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "fragsize_entry"));
 	g_assert(widget);
-	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+	str = (char *) gtk_editable_get_text (GTK_EDITABLE (widget));
 	if (str && strlen (str))
 		nm_setting_vpn_add_data_item (s_vpn, NM_IODINE_KEY_FRAGSIZE, str);
 
@@ -559,53 +566,38 @@ update_connection (NMVpnEditor *iface,
 static NMVpnEditor *
 nm_vpn_editor_interface_new (NMConnection *connection, GError **error)
 {
-	NMVpnEditor *object;
+	g_autoptr (NMVpnEditor) object = NULL;
+	g_autoptr (GError) err = NULL;
+	g_autofree char *resource = NULL;
 	IodineEditorPrivate *priv;
-	char *ui_file;
 
 	if (error)
 		g_return_val_if_fail (*error == NULL, NULL);
 
 	object = g_object_new (IODINE_TYPE_EDITOR, NULL);
-
-	if (!object) {
-		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not create iodine object");
-		return NULL;
-	}
-
 	priv = iodine_editor_get_instance_private (IODINE_EDITOR (object));
-	ui_file = g_strdup_printf ("%s/%s", UIDIR, "nm-iodine-dialog.ui");
+	resource = g_strdup_printf ("/org/freedesktop/network-manager-iodine/%s", UIFILE);
 	priv->builder = gtk_builder_new ();
 
 	gtk_builder_set_translation_domain (priv->builder, GETTEXT_PACKAGE);
-	if (!gtk_builder_add_from_file (priv->builder, ui_file, error)) {
-		g_warning ("Couldn't load builder file: %s",
-		           error && *error ? (*error)->message : "(unknown)");
-		g_clear_error (error);
+	if (!gtk_builder_add_from_resource (priv->builder, resource, &err)) {
+		g_warning ("Couldn't load builder file: %s", err->message);
 		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not load required resources at %s", ui_file);
-		g_free (ui_file);
-		g_object_unref (object);
+		             "could not load required resource %s", resource);
 		return NULL;
 	}
-	g_free (ui_file);
 
 	priv->widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "iodine-vbox"));
 	if (!priv->widget) {
-		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0,
-		             "could not load UI widget");
-		g_object_unref (object);
+		g_set_error (error, IODINE_EDITOR_PLUGIN_ERROR, 0, "could not load UI widget");
 		return NULL;
 	}
 	g_object_ref_sink (priv->widget);
 
-	if (!init_editor_plugin (IODINE_EDITOR (object), connection, error)) {
-		g_object_unref (object);
+	if (!init_editor_plugin (IODINE_EDITOR (object), connection, error))
 		return NULL;
-	}
 
-	return object;
+	return g_steal_pointer (&object);
 }
 
 static void
